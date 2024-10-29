@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { simplify, evaluate } from 'mathjs';
 import GraphVisualizer from './GraphVisualizer';
 
@@ -6,6 +6,7 @@ const MathSolver: React.FC = () => {
   const [equation, setEquation] = useState<string>('');
   const [solution, setSolution] = useState<string | null>(null);
   const [graphData, setGraphData] = useState<any>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const solveEquation = () => {
     try {
@@ -14,7 +15,7 @@ const MathSolver: React.FC = () => {
       }
 
       const simplified = simplify(equation);
-      const result = evaluate(equation, { x: 1 }); 
+      const result = evaluate(equation, { x: 1 });
       setSolution(`Solution (for x = 1): ${result}`);
 
       const plotData = createGraphData(equation);
@@ -25,7 +26,7 @@ const MathSolver: React.FC = () => {
   };
 
   const createGraphData = (eq: string) => {
-    const xValues = Array.from({ length: 100 }, (_, i) => i - 50); 
+    const xValues = Array.from({ length: 100 }, (_, i) => i - 50);
     const yValues = xValues.map((x) => {
       try {
         return evaluate(eq.replace(/x/g, `(${x})`));
@@ -45,6 +46,12 @@ const MathSolver: React.FC = () => {
     ];
   };
 
+
+  useEffect(()=>{
+       if(solution && graphData){
+          bottomRef.current?.scrollIntoView({behavior:'smooth'});
+       }
+  }, [solution, graphData])
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <h2>Math Equation Solver</h2>
@@ -58,8 +65,12 @@ const MathSolver: React.FC = () => {
       <button onClick={solveEquation} style={{ margin: '10px' }}>
         Solve
       </button>
-      {solution && <p>{solution}</p>}
-      {graphData && <GraphVisualizer data={graphData} />}
+
+      <div ref={bottomRef}>
+        {solution && <p>{solution}</p>}
+        {graphData && <GraphVisualizer data={graphData} />}
+      </div>
+
     </div>
   );
 };
